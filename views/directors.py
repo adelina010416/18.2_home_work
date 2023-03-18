@@ -1,6 +1,6 @@
 from flask_restx import Resource, Namespace
 
-from my_models import Director, DirectorSchema
+from constants import director_service, directors_schema, director_schema
 
 director_ns = Namespace('directors')
 
@@ -8,16 +8,13 @@ director_ns = Namespace('directors')
 @director_ns.route('/')
 class DirectorsView(Resource):
     def get(self):
-        directors = Director.query.all()
-        result = DirectorSchema(many=True).dump(directors)
-        return result, 200
+        return directors_schema.dump(director_service.get_all()), 200
 
 
 @director_ns.route('/<int:did>')
 class DirectorView(Resource):
     def get(self, did):
-        director = Director.query.get(did)
+        director = director_service.get_one(did)
         if not director:
             return 'NotFound', 404
-        result = DirectorSchema().dump(director)
-        return result, 200
+        return director_schema.dump(director), 200

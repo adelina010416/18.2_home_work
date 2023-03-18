@@ -17,18 +17,6 @@ class Movie(db.Model):
     director = db.relationship("Director")
 
 
-class Genre(db.Model):
-    __tablename__ = 'genre'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-
-
-class Director(db.Model):
-    __tablename__ = 'director'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-
-
 class MovieSchema(Schema):
     id = fields.Int(dump_only=True)
     title = fields.Str()
@@ -38,13 +26,3 @@ class MovieSchema(Schema):
     rating = fields.Float()
     genre_id = fields.Int()
     director_id = fields.Int()
-
-
-class GenreSchema(Schema):
-    id = fields.Int(dump_only=True)
-    name = fields.Str()
-
-
-class DirectorSchema(Schema):
-    id = fields.Int(dump_only=True)
-    name = fields.Str()

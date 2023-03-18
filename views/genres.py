@@ -1,6 +1,6 @@
 from flask_restx import Resource, Namespace
 
-from my_models import Genre, GenreSchema
+from constants import genre_service, genres_schema, genre_schema
 
 genre_ns = Namespace('genres')
 
@@ -8,16 +8,13 @@ genre_ns = Namespace('genres')
 @genre_ns.route('/')
 class GenresView(Resource):
     def get(self):
-        directors = Genre.query.all()
-        result = GenreSchema(many=True).dump(directors)
-        return result, 200
+        return genres_schema.dump(genre_service.get_all()), 200
 
 
 @genre_ns.route('/<int:gid>')
 class GenreView(Resource):
     def get(self, gid):
-        genre = Genre.query.get(gid)
+        genre = genre_service.get_one(gid)
         if not genre:
             return 'NotFound', 404
-        result = GenreSchema().dump(genre)
-        return result, 200
+        return genre_schema.dump(genre), 200

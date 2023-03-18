@@ -1,8 +1,7 @@
 from flask import request
 from flask_restx import Resource, Namespace
 
-from my_models import Movie, MovieSchema
-from setup_db import db
+from constants import movie_service, movies_schema, movie_schema
 
 movie_ns = Namespace('movies')
 
@@ -10,62 +9,35 @@ movie_ns = Namespace('movies')
 @movie_ns.route('/')
 class MoviesView(Resource):
     def get(self):
-        director_id = request.args.get('director_id')
-        genre_id = request.args.get('genre_id')
-        year = request.args.get('year')
-
-        movies = Movie.query
-        if director_id:
-            movies = movies.filter(Movie.director_id == director_id)
-        if genre_id:
-            movies = movies.filter(Movie.genre_id == genre_id)
-        if year:
-            movies = movies.filter(Movie.year == year)
-
-        result = MovieSchema(many=True).dump(movies.all())
-        if not result:
+        movies = movies_schema.dump(movie_service.get_all(request.args))
+        if not movies:
             return "NotFound", 404
-        return result
+        return movies
 
     def post(self):
         movie = request.json
-        result = Movie(**movie)
-        db.session.add(result)
-        db.session.commit()
+        movie_service.create(movie)
         return "", 201
 
 
 @movie_ns.route('/<int:mid>')
 class MovieView(Resource):
     def get(self, mid):
-        movie = Movie.query.get(mid)
+        movie = movie_schema.dump(movie_service.get_one(mid))
         if not movie:
             return 'NotFound', 404
-        result = MovieSchema().dump(movie)
-        return result, 200
+        return movie, 200
 
     def put(self, mid):
-        movie = Movie.query.get(mid)
         new_data = request.json
-        if not movie:
-            return 'NotFound', 404
+        movie_service.update(new_data, mid)
+        return "", 200
 
-        movie.title = new_data['title']
-        movie.description = new_data['description']
-        movie.trailer = new_data['trailer']
-        movie.year = new_data['year']
-        movie.rating = new_data['rating']
-        movie.genre_id = new_data['genre_id']
-        movie.director_id = new_data['director_id']
-
-        db.session.add(movie)
-        db.session.commit()
+    def patch(self, mid):
+        new_data = request.json
+        movie_service.update_partial(new_data, mid)
         return "", 200
 
     def delete(self, mid):
-        movie = Movie.query.get(mid)
-        if not movie:
-            return 'NotFound', 404
-        db.session.delete(movie)
-        db.session.commit()
+        movie = movie_service.delete(mid)
         return "", 204
